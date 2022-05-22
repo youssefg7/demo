@@ -1,9 +1,17 @@
 package com.example.demo;
+
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.logevents.SelenideLogger;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.selenide.AllureSelenide;
+import org.junit.BeforeClass;
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import static com.codeborne.selenide.Condition.attribute;
@@ -12,38 +20,40 @@ import static com.codeborne.selenide.Selenide.*;
 
 public class MainPageTest {
     MainPage mainPage = new MainPage();
-
-    @BeforeAll        public static void setUpAll() {
-        Configuration.browserSize = "1280x800";
-            SelenideLogger.addListener("allure", new AllureSelenide());
-        }
-
-    @BeforeEach        public void setUp() {
-        open("https://www.jetbrains.com/");
+    static WebDriver webDriver;
+    @BeforeAll
+    public static void setUpAll() {
+        WebDriverManager.chromedriver().setup();
+        webDriver = new ChromeDriver();
+        webDriver.get("http://formy-project.herokuapp.com/form");
+    }
+    @Test
+    public void firstNameTest(){
+       WebElement firstName = webDriver.findElement(By.xpath("//*[@id=\"first-name\"]"));
+       firstName.sendKeys("Youssef");
+       assertEquals("Youssef", firstName.getAttribute("value"));
+    }
+    @Test
+    public void lastNameTest(){
+        WebElement lastName = webDriver.findElement(By.xpath("//*[@id=\"last-name\"]"));
+        lastName.sendKeys("George");
+        assertEquals("George", lastName.getAttribute("value"));
     }
 
     @Test
-    public void search() {
-        mainPage.searchButton.click();
-
-        $("[data-test='search-input']").sendKeys("Selenium");
-        $("button[data-test='full-search-button']").click();
-
-        $("input[data-test='search-input']").shouldHave(attribute("value", "Selenium"));
+    public void educationTest(){
+        WebElement highSchool = webDriver.findElement(By.id("radio-button-1"));
+        highSchool.click();
+        assertEquals(true,highSchool.isSelected());
     }
 
     @Test
-    public void toolsMenu() {
-        mainPage.toolsMenu.click();
-
-        $("div[data-test='main-submenu']").shouldBe(visible);
+    public void submitTest(){
+        WebElement btn = webDriver.findElement(By.className("btn"));
+        btn.click();
     }
-
-    @Test
-    public void navigationToAllTools() {
-        mainPage.seeAllToolsButton.click();
-
-        $("#products-page").shouldBe(visible);
-
-        assertEquals("All Developer Tools and Products by JetBrains", Selenide.title());            }
+    @AfterAll
+    public static void afterAll(){
+        webDriver.quit();
+    }
 }
